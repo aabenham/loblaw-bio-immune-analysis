@@ -1,0 +1,19 @@
+=== Part 4: Melanoma PBMC baseline (time=0) on miraclib ===
+Total samples: 656
+
+Samples per project:
+project
+prj1    384
+prj3    272
+
+Subjects by response (unique subjects):
+response
+yes    331
+no     325
+
+Subjects by sex (unique subjects):
+sex
+M    344
+F    312
+
+AI models mention: quintazide

@@ -3,7 +3,37 @@ from pathlib import Path
 
 import pandas as pd
 import matplotlib.pyplot as plt
-from scipy.stats import mannwhitneyu
+import numpy as np
+
+def permutation_test_mean_diff(x, y, n_perm=5000, seed=0):
+    """
+    Two-sided permutation test on difference in means.
+    Returns p-value.
+    """
+    x = np.asarray(x, dtype=float)
+    y = np.asarray(y, dtype=float)
+    x = x[~np.isnan(x)]
+    y = y[~np.isnan(y)]
+    if len(x) < 2 or len(y) < 2:
+        return 1.0
+
+    rng = np.random.default_rng(seed)
+    observed = abs(x.mean() - y.mean())
+
+    pooled = np.concatenate([x, y])
+    n_x = len(x)
+
+    count = 0
+    for _ in range(n_perm):
+        rng.shuffle(pooled)
+        x_perm = pooled[:n_x]
+        y_perm = pooled[n_x:]
+        stat = abs(x_perm.mean() - y_perm.mean())
+        if stat >= observed:
+            count += 1
+
+    # add-one smoothing
+    return (count + 1) / (n_perm + 1)
 
 DB_PATH = Path("loblaw.db")
 OUT_DIR = Path("analysis")
@@ -101,9 +131,12 @@ def part3_responder_analysis(summary: pd.DataFrame):
         no = pop_df[pop_df["response"].str.lower() == "no"]["percentage"].dropna()
 
         if len(yes) < 2 or len(no) < 2:
-            u_stat, p = None, 1.0
+            p = 1.0
         else:
-            u_stat, p = mannwhitneyu(yes, no, alternative="two-sided")
+            # permutation test on mean difference (two-sided)
+            p = permutation_test_mean_diff(yes.values, no.values, n_perm=5000, seed=42)
+
+u_stat = None
 
         rows.append(
             {

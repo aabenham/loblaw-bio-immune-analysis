@@ -1,4 +1,4 @@
 pandas
-scipy
 matplotlib
 streamlit
+scipy==1.11.4
